@@ -1,0 +1,8 @@
+/nbproject/private/
+/.libs/
+*.o 
+*.lo 
+*.slo 
+*.obj 
+*.a 
+*.la
