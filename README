@@ -1,0 +1,16 @@
+* Install and Reload
+    make
+    make install
+    /etc/init.d/apache2 restart
+
+* Settings
+    ** add LoadModule directive to your apache conf file.
+    LoadModule mecab_module     /usr/lib/apache2/modules/mod_mecab.so
+
+    ** create a file which named mecab.conf in your conf.d directory.
+    <Location /mecab>
+        SetHandler mecab
+
+        # the name of query param name
+        TargetQueryName q
+    </Location>
