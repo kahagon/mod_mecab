@@ -54,68 +54,71 @@
 
 #include "apreq_param.h"
 
-#define QUERY_NUMBERS 16
-#define TARGET_QUERY_NAME "q"
+#define MECAB_QUERY_NUMBERS 16
+#define MECAB_TARGET_QUERY_NAME_DIRECTIVE "MecabTargetQueryName"
+#define MECAB_TARGET_QUERY_NAME_DEFAULT "q"
+#define MECAB_JSON_ENV_NAME_DIRECTIVE "MecabJsonEnvName"
+#define MECAB_JSON_ENV_NAME_DEFAULT "MECAB_JSON"
 
-#define mecab_error_handling(message, r) \
+#define mecab_error_handling_register_json_env(r, conf, message) \
         { \
             json_object *json_result = json_object_new_object(); \
             json_object_object_add(json_result, "error", json_object_new_boolean(TRUE)); \
             json_object_object_add(json_result, "error_message", json_object_new_string(message)); \
-            ap_rputs(json_object_to_json_string(json_result), r); \
+            apr_table_set(r->subprocess_env, conf->json_env_name_directive, json_object_to_json_string(json_result)); \
             json_object_put(json_result); \
-            return OK; \
-        }
-
-#define mecab_error_handling_apr(statcode, r) \
-        { \
-            apr_size_t bufsize = 512; \
-            char *buf = (char *)apr_pcalloc(r->pool,bufsize); \
-            apr_strerror(statcode, buf, bufsize); \
-            mecab_error_handling(buf, r); \
         }
 
 typedef struct mecab_config_t {
-    char *target_query_name;
+    char *target_query_name_directive;
+    char *json_env_name_directive;
 } mecab_config_t;
 
 module AP_MODULE_DECLARE_DATA mecab_module;
 
 static const char *mecab_init_directive_target_query_name(cmd_parms *cmd, void *mconfig, char *word) {
     mecab_config_t *conf = (mecab_config_t *)ap_get_module_config(cmd->server->module_config, &mecab_module);
-    conf->target_query_name = apr_pstrdup(cmd->pool, word);
+    conf->target_query_name_directive = apr_pstrdup(cmd->pool, word);
+    return NULL;
+}
+static const char *mecab_init_directive_json_env_name(cmd_parms *cmd, void *mconfig, char *word) {
+    mecab_config_t *conf = (mecab_config_t *)ap_get_module_config(cmd->server->module_config, &mecab_module);
+    conf->json_env_name_directive = apr_pstrdup(cmd->pool, word);
     return NULL;
 }
 
-/* The sample content handler */
-static int mecab_handler(request_rec *r)
-{
-    if (strcmp(r->handler, "mecab")) {
-        return DECLINED;
-    }
-    r->content_type = "text/javascript; charset=UTF-8";
-
-    if (r->header_only)
-        return OK;
+static void mecab_register_result_to_subprocess_env(request_rec *r) {
+    mecab_config_t *config = ap_get_module_config(r->server->module_config, &mecab_module);
     
-    if (r->args == NULL)
-        mecab_error_handling("query string is null. should send queries to parse.", r);
+    
+    if (r->args == NULL) {
+        mecab_error_handling_register_json_env(r, config, "query string is null. should send queries to parse.");
+        return;
+    }
     
     apr_pool_t *pool = r->pool;
-    apr_table_t *table = apr_table_make(pool, QUERY_NUMBERS);
+    apr_table_t *table = apr_table_make(pool, MECAB_QUERY_NUMBERS);
 
     apr_status_t statcode = apreq_parse_query_string(pool, table, r->args);
     
-    if (statcode != APR_SUCCESS) 
-        mecab_error_handling_apr(statcode, r);
-    if (apr_is_empty_table(table)) 
-        mecab_error_handling("query string is empty. should send queries to parse.", r);
+    if (statcode != APR_SUCCESS) {
+        apr_size_t bufsize = 512;
+        char *buf = (char *)apr_pcalloc(r->pool,bufsize);
+        apr_strerror(statcode, buf, bufsize);
+        mecab_error_handling_register_json_env(r, config, buf);
+        return;
+    }
+    if (apr_is_empty_table(table)) {
+        mecab_error_handling_register_json_env(r, config, "query string is empty. should send queries to parse.");
+        return;
+    }
     
-    mecab_config_t *config = (mecab_config_t *)ap_get_module_config(r->server->module_config, &mecab_module);
-    const char *target_string = apr_table_get(table, config->target_query_name);
+    const char *target_string = apr_table_get(table, config->target_query_name_directive);
     
-    if (target_string == NULL) 
-        mecab_error_handling("missing query string to parse.", r);
+    if (target_string == NULL) {
+        mecab_error_handling_register_json_env(r, config, "missing query string to parse.");
+        return;
+    }
     
     json_object *json_result = json_object_new_object();
     json_object_object_add(json_result, "input", json_object_new_string(target_string));
@@ -150,32 +153,67 @@ static int mecab_handler(request_rec *r)
     json_object_object_add(json_result, "nodes", json_nodes);
     json_object_object_add(json_result, "error", json_object_new_boolean(FALSE));
     json_object_object_add(json_result, "error_message", json_object_new_string(""));
-    
-    ap_rputs(json_object_to_json_string(json_result), r);
+
+    apr_table_set(
+            r->subprocess_env, 
+            config->json_env_name_directive, 
+            json_object_to_json_string(json_result));
     
     json_object_put(json_result);
+    return;
+}
+
+/* The sample content handler */
+static int mecab_handler(request_rec *r)
+{
+    if (strcmp(r->handler, "mecab")) {
+        return DECLINED;
+    }
+    r->content_type = "text/javascript; charset=UTF-8";
+
+    if (r->header_only)
+        return OK;
+
+    mecab_config_t *config = (mecab_config_t *)ap_get_module_config(r->server->module_config, &mecab_module);
+    
+    ap_rputs(apr_table_get(r->subprocess_env, config->json_env_name_directive), r);
+    
     return OK;
+}
+
+static int mecab_quick_handler(request_rec *r, int lookup) {
+    //mecab_config_t *conf = ap_get_module_config(r->server->module_config, &mecab_module);
+    mecab_register_result_to_subprocess_env(r);
+    return DECLINED;
 }
 
 
 static const command_rec cmds[] = {
     AP_INIT_TAKE1(
-            "TargetQueryName", 
+            MECAB_TARGET_QUERY_NAME_DIRECTIVE, 
             mecab_init_directive_target_query_name, 
             NULL, 
             RSRC_CONF | ACCESS_CONF, 
             "specify parameter name of target query string which will parsed by MeCab."),
+    AP_INIT_TAKE1(
+            MECAB_JSON_ENV_NAME_DIRECTIVE, 
+            mecab_init_directive_json_env_name, 
+            NULL, 
+            RSRC_CONF | ACCESS_CONF, 
+            "specify environment variable name of MeCab parsing result."),
     {NULL}
 };
 
 static void *create_config(apr_pool_t *pool, server_rec *server) {
     mecab_config_t *conf = (mecab_config_t *)apr_pcalloc(pool, sizeof(*conf));
-    conf->target_query_name = TARGET_QUERY_NAME;
+    conf->target_query_name_directive = MECAB_TARGET_QUERY_NAME_DEFAULT;
+    conf->json_env_name_directive = MECAB_JSON_ENV_NAME_DEFAULT;
     return conf;
 }
 
 static void mecab_register_hooks(apr_pool_t *p)
 {
+    ap_hook_quick_handler(mecab_quick_handler, NULL, NULL, APR_HOOK_FIRST);
     ap_hook_handler(mecab_handler, NULL, NULL, APR_HOOK_MIDDLE);
 }
 

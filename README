@@ -1,16 +1,43 @@
-* Install and Reload
+mod_mecab
+
+
+Intall
+
+Before installing, you must check Makefile variables and directive below.
+
+${top_srcdir} (variable)
+${top_builddir} (variable)
+include (directive)
+
+Values of these variables, is specified path to directory of apache build utilities.
+In Ubuntu, the path is /usr/share/apache2. And in Fedora, /usr/lib/httpd.
+You must check these variables and rewrite value if you need.
+
+Installing command is below. Run terminal and type these command.
+
+    git clone https://github.com/oasynnoum/mod_mecab.git
+    cd mod_mecab
     make
     make install
-    /etc/init.d/apache2 restart
 
-* Settings
-    ** add LoadModule directive to your apache conf file.
+                
+Settings
+
+add LoadModule directive to your apache conf file.
     LoadModule mecab_module     /usr/lib/apache2/modules/mod_mecab.so
-
-    ** create a file which named mecab.conf in your conf.d directory.
-    <Location /mecab>
-        SetHandler mecab
+                
+create a file which named mecab.conf in your conf.d directory.
+    <IfModule mod_mecab.c>
+        <Location /mecab>
+            SetHandler mecab
+        </Location>
 
         # the name of query param name
         TargetQueryName q
-    </Location>
+
+        # the name of environment variable which is MeCab parsing result.
+        # in PHP, you can get result by next code.
+        # mod_mecab_object = json_encode(getenv('MECAB_JSON'));.
+        MecabJsonEnvName MECAB_JSON
+    </IfModule mod_mecab.c>
+                

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>README | mod_mecab</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+        <div>
+            <h1>mod_mecab</h1>
+            
+            <h2>Intall</h2>
+            <div>
+                <p>
+                    Before installing, you must check Makefile variables and directive below.
+                </p>
+                <ul>
+                    <li><code>${top_srcdir}</code> (variable)</li>
+                    <li><code>${top_builddir}</code> (variable)</li>
+                    <li><code>include</code> (directive)</li>
+                </ul>
+                <p>
+                    Values of these variables, is specified path to directory of apache build utilities.<br />
+                    In Ubuntu, the path is <code>/usr/share/apache2</code>. And in Fedora, <code>/usr/lib/httpd</code>.<br />
+                    You must check these variables and rewrite value if you need.
+                </p>
+                <p>
+                    Installing command is below. Run terminal and type these command.
+                </p>
+                <pre>
+    git clone https://github.com/oasynnoum/mod_mecab.git
+    cd mod_mecab
+    make
+    make install
+                </pre>
+            </div>
+            
+            <h2>Settings</h2>
+            <div>
+                <strong>add LoadModule directive to your apache conf file.</strong>
+                <pre>
+    LoadModule mecab_module     /usr/lib/apache2/modules/mod_mecab.so
+                </pre>
+                
+                <strong>create a file which named mecab.conf in your conf.d directory.</strong>
+                <pre>
+    &lt;IfModule mod_mecab.c&gt;
+        &lt;Location /mecab&gt;
+            SetHandler mecab
+        &lt;/Location&gt;
+
+        # the name of query param name
+        TargetQueryName q
+
+        # the name of environment variable which is MeCab parsing result.
+        # if you use PHP, you can get result by next code.
+        # <code>mod_mecab_object = json_encode(getenv('MECAB_JSON'));</code>.
+        MecabJsonEnvName MECAB_JSON
+    &lt;/IfModule mod_mecab.c&gt;
+                </pre>
+            </div>
+        </div>
+    </body>
+</html>
