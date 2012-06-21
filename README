@@ -1,25 +1,38 @@
 mod_mecab
 
+Dependencies
 
+mod_mecab uses some libraries. you must also install these libraries to build mod_mecab.
+
+apache development utils
+json-c
+libapreq2
+libmecab1
+if you use Ubuntu, you can install these libraries with below.
+
+    apt-get apache2-prefork-dev install libjson0-dev libapreq2-dev libmecab-dev
+                
+on Fedora,
+
+    yum install httpd-devel json-c-devel libapreq2-devel mecab-devel
+                
 Intall
 
-Before installing, you must check Makefile variables and directive below.
+before installing, you must check Makefile variables and directive below.
 
 ${top_srcdir} (variable)
 ${top_builddir} (variable)
 include (directive)
+values of these variables, is specified path to directory of apache build utilities.
+on Ubuntu, the path is /usr/share/apache2. on Fedora, /usr/lib/httpd.
+you must check these variables and rewrite value if you need.
 
-Values of these variables, is specified path to directory of apache build utilities.
-In Ubuntu, the path is /usr/share/apache2. And in Fedora, /usr/lib/httpd.
-You must check these variables and rewrite value if you need.
-
-Installing command is below. Run terminal and type these command.
+installing command is below. Run terminal and type these command.
 
     git clone https://github.com/oasynnoum/mod_mecab.git
     cd mod_mecab
     make
     make install
-
                 
 Settings
 
@@ -36,7 +49,7 @@ create a file which named mecab.conf in your conf.d directory.
         TargetQueryName q
 
         # the name of environment variable which is MeCab parsing result.
-        # in PHP, you can get result by next code.
+        # if you use PHP, you can get result by next code.
         # mod_mecab_object = json_encode(getenv('MECAB_JSON'));.
         MecabJsonEnvName MECAB_JSON
     </IfModule mod_mecab.c>

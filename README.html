@@ -8,10 +8,34 @@
         <div>
             <h1>mod_mecab</h1>
             
+            <h2>Dependencies</h2>
+            <div>
+                <p>
+                    mod_mecab uses some libraries.
+                    you must also install these libraries to build mod_mecab.
+                </p>
+                <ul>
+                    <li>apache development utils</li>
+                    <li>json-c</li>
+                    <li>libapreq2</li>
+                    <li>libmecab1</li>
+                </ul>
+                <p>
+                    if you use Ubuntu, you can install these libraries with below.
+                </p>
+                <pre>
+    <code>apt-get apache2-prefork-dev install libjson0-dev libapreq2-dev libmecab-dev</code>
+                </pre>
+                <p>on Fedora, </p>
+                <pre>
+    <code>yum install httpd-devel json-c-devel libapreq2-devel mecab-devel</code>
+                </pre>
+            </div>
+            
             <h2>Intall</h2>
             <div>
                 <p>
-                    Before installing, you must check Makefile variables and directive below.
+                    before installing, you must check Makefile variables and directive below.
                 </p>
                 <ul>
                     <li><code>${top_srcdir}</code> (variable)</li>
@@ -19,12 +43,12 @@
                     <li><code>include</code> (directive)</li>
                 </ul>
                 <p>
-                    Values of these variables, is specified path to directory of apache build utilities.<br />
-                    In Ubuntu, the path is <code>/usr/share/apache2</code>. And in Fedora, <code>/usr/lib/httpd</code>.<br />
-                    You must check these variables and rewrite value if you need.
+                    values of these variables, is specified path to directory of apache build utilities.<br />
+                    on Ubuntu, the path is <code>/usr/share/apache2</code>. on Fedora, <code>/usr/lib/httpd</code>.<br />
+                    you must check these variables and rewrite value if you need.
                 </p>
                 <p>
-                    Installing command is below. Run terminal and type these command.
+                    installing command is below. Run terminal and type these command.
                 </p>
                 <pre>
     git clone https://github.com/oasynnoum/mod_mecab.git
