@@ -82,6 +82,32 @@
     &lt;/IfModule mod_mecab.c&gt;
                 </pre>
             </div>
+            
+            <h2>Usage</h2>
+            <div>
+                <p>
+                    you can get MeCab result JSON from environment variables. show example code below.
+                </p>
+                <h3>PHP</h3>
+                <pre>
+    &lt;?php
+    header('Content-Type: text/javascript; charset=UTF-8', true);
+    print getenv('MECAB_JSON');
+                </pre>
+                <h3>Perl</h3>
+                <pre>
+    #!/usr/bin/perl
+    use strict;
+    use warnings;
+    use utf8;
+    use JSON;
+    use Data::Dumper;
+
+    print "Content-Type: text/javascript; charset=UTF-8\r\n\r\n";
+    print Dumper(decode_json($ENV{'MECAB_JSON'}));
+
+                </pre>
+            </div>
         </div>
     </body>
 </html>

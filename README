@@ -54,3 +54,25 @@ create a file which named mecab.conf in your conf.d directory.
         MecabJsonEnvName MECAB_JSON
     </IfModule mod_mecab.c>
                 
+
+Usage
+
+you can get MeCab result JSON from environment variables. show example code below.
+
+PHP
+
+    <?php
+    header('Content-Type: text/javascript; charset=UTF-8', true);
+    print getenv('MECAB_JSON');
+                
+Perl
+
+    #!/usr/bin/perl
+    use strict;
+    use warnings;
+    use utf8;
+    use JSON;
+    use Data::Dumper;
+
+    print "Content-Type: text/javascript; charset=UTF-8\r\n\r\n";
+    print Dumper(decode_json($ENV{'MECAB_JSON'}));
