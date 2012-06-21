@@ -91,8 +91,8 @@
                 <h3>PHP</h3>
                 <pre>
     &lt;?php
-    header('Content-Type: text/javascript; charset=UTF-8', true);
-    print getenv('MECAB_JSON');
+    header('Content-Type: text/plain; charset=UTF-8', true);
+    var_dump(json_decode(getenv('MECAB_JSON')));
                 </pre>
                 <h3>Perl</h3>
                 <pre>
@@ -103,9 +103,46 @@
     use JSON;
     use Data::Dumper;
 
-    print "Content-Type: text/javascript; charset=UTF-8\r\n\r\n";
+    print "Content-Type: text/plain; charset=UTF-8\r\n\r\n";
     print Dumper(decode_json($ENV{'MECAB_JSON'}));
 
+                </pre>
+                <h3>HTML/JavaScript</h3>
+                <pre>
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;mod_mecab testing&lt;/title&gt;
+        &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;
+        &lt;script type=&quot;text/javascript&quot; src=&quot;https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js&quot;&gt;&lt;/script&gt;
+        &lt;script type=&quot;text/javascript&quot;&gt;
+            jQuery(function() {
+                jQuery(&quot;#parse&quot;).click(function (ev) {
+                    jQuery.ajax({
+                        url : &quot;/mecab&quot;,
+                        data : {
+                            q : jQuery(&quot;#input&quot;).val()
+                        },
+                        dataType : &quot;json&quot;,
+                        success : function(data, textStatus, jqXHR) {
+                            console.log(data);
+                        }
+                    });
+                    return false;
+                });
+            });
+        &lt;/script&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;h1&gt;mod_mecab testing&lt;/h1&gt;
+        &lt;p&gt;the result will appear in your JavaScript console.&lt;/p&gt;
+        &lt;h2&gt;input&lt;/h2&gt;
+        &lt;form&gt;
+            &lt;textarea cols=&quot;40&quot; rows=&quot;10&quot; id=&quot;input&quot;&gt;&lt;/textarea&gt;
+            &lt;button id=&quot;parse&quot;&gt;parse&lt;/button&gt;
+        &lt;/form&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
                 </pre>
             </div>
         </div>
