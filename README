@@ -10,7 +10,7 @@ libapreq2
 libmecab1
 if you use Ubuntu, you can install these libraries with below.
 
-    apt-get apache2-prefork-dev install libjson0-dev libapreq2-dev libmecab-dev
+    apt-get install apache2-prefork-dev libjson0-dev libapreq2-dev libmecab-dev
                 
 on Fedora,
 
